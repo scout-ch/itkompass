@@ -23,7 +23,8 @@
       },
       "contact": "Kontakt IT-Kom",
       "mail": "Sende uns eine E-Mail",
-      "github": "Schaue unsere Projekte auf Github an"
+      "github": "Schaue unsere Projekte auf Github an",
+      "newsletter": "Melde dich für unseren Newsletter an"
     },
     "new_project_guidelines_page": {
       "title": "Neues Projekt"
@@ -189,7 +190,7 @@
           "title": "ToDo",
           "defaults": {
             "contact_itkom": "Kontaktiere die IT-Kommission, damit das Tool in der IT-Landschaft aktualisiert werden kann.",
-            "fill_concept": "Fülle das Betriebskonzept aus un reiche es ein, eine Vorlage findest du im Downloadbereich."
+            "fill_concept": "Fülle das Betriebskonzept aus und reiche es ein, eine Vorlage findest du im Downloadbereich."
           }
         },
         "answers": {

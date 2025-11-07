@@ -122,6 +122,9 @@ export default function HomePage() {
             <li>
               <A href="https://github.com/scout-ch">{t('home_page.github')}</A>
             </li>
+            <li>
+              <A href="https://db.scout.ch/de/groups/2/mailing_lists/1564">{t('home_page.newsletter')}</A>
+            </li>
           </ul>
         </div>
       </Box>

@@ -23,7 +23,8 @@
       },
       "contact": "Contact CoIT",
       "mail": "Envoyez-nous un e-mail",
-      "github": "Consulter nos projets sur Github"
+      "github": "Consulter nos projets sur Github",
+      "newsletter": "Inscris-toi à notre newsletter"
     },
     "new_project_guidelines_page": {
       "title": "Nouveau projet"
