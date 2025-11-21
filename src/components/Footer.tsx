@@ -1,6 +1,7 @@
 
 import FooterLogo from './../images/footer.svg?react'
 import PBSLogo from './../images/pbs_logo.svg?react'
+import ITKomLogo from './../images/ITKom-Logo.png'
 import styled from '@emotion/styled';
 import i18n from './../i18n';
 import { Link } from 'react-router-dom'
@@ -94,7 +95,10 @@ function Footer() {
     <FooterImage><FooterLogo></FooterLogo></FooterImage>
     <FooterContent>
       <FooterNavigation>
-        <Logo><PBSLogo></PBSLogo></Logo>
+        <Logo>
+          <PBSLogo></PBSLogo>
+          <img src={ITKomLogo} width={100} style={{ marginTop: 20 }} />
+        </Logo>
         <ul>
           <li>
             <Button className={lang === 'de' ? 'active' : ''} onClick={() => changeLanguage('de')}>Deutsch</Button>&nbsp;

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clippy Jump & Run</title>
+  <style>
+    :root {
+      --max-canvas-width: 800px;
+      --banner-height: 56px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #632949;
+      font-family: Arial, sans-serif;
+      background-image: url('public/ITKom-Logo.png');
+      background-size: 300px;
+      background-repeat: no-repeat;
+    }
+
+    /* top banner */
+    #topBanner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--banner-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 16px;
+      background: linear-gradient(90deg, #2d6fbd 0%, #3a79e4 100%);
+      color: #fff;
+      font-weight: 700;
+      z-index: 10005; /* above footer / buttons, below modals */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    #topBanner .banner-content { display:flex; align-items:center; gap:12px; }
+    #topBanner a { color: #fff; text-decoration: underline; font-weight: 800; }
+    #topBanner .close-banner {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.95);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* push game content below banner */
+    #gameContainer { text-align: center; margin-top: var(--banner-height); }
+
+    /* responsive canvas */
+    #gameCanvas {
+      border: 2px solid #535353;
+      background: #fff;
+      display: block;
+      margin: 12px auto;
+      width: 100%;
+      max-width: var(--max-canvas-width);
+      height: auto;
+      touch-action: manipulation;
+      /* improve touch responsiveness */
+    }
+
+    #score {
+      /* font-size: 24px; */
+      font-weight: bold;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    #name-field {
+      margin: 8px 0;
+    }
+
+    #coin {
+      font-size: 20px;
+      font-weight: bold;
+      color: gold;
+      margin-bottom: 10px;
+    }
+
+    #gameOver {
+      font-size: 32px;
+      color: #521d3a;
+      border: 2px dotted black;
+      background-color: white;
+      font-weight: bold;
+      display: none;
+      margin-top: 20px;
+    }
+
+    /* Modal for game over messages */
+    .modal-overlay {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10010; /* ensure modals stay above banner/footer */
+    }
+
+    .modal-box {
+      background: white;
+      color: #221;
+      padding: 18px;
+      border-radius: 8px;
+      max-width: 420px;
+      width: calc(100% - 40px);
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-box h2 {
+      margin-top: 0;
+    }
+
+    .modal-button {
+      margin-top: 12px;
+      padding: 8px 14px;
+      background: #521d3a;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* on-screen touch controls (only visible on small screens) */
+    .touch-btn {
+      position: fixed;
+      z-index: 999;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      background: rgba(82, 29, 58, 0.95);
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      display: none;
+      touch-action: manipulation;
+    }
+
+    .touch-btn:active {
+      transform: translateY(1px);
+    }
+
+    #jumpBtn {
+      right: 12px;
+      bottom: 40px;
+    }
+
+    #restartBtn {
+      left: 12px;
+      bottom: 40px;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        background-size: 120px;
+      }
+
+      .touch-btn {
+        display: block;
+      }
+
+      #score,
+      #coin {
+        font-size: 17px;
+      }
+
+      #gameOver {
+        font-size: 22px;
+        padding: 8px;
+      }
+
+      .modal-box {
+        padding: 14px;
+      }
+
+      #instructions {
+        font-size: 14px;
+      }
+    }
+
+    #instructions {
+      color: white;
+      margin-top: 10px;
+    }
+
+    /* style readonly score input in modal form */
+    input#score[readonly] {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: #222;
+      font-weight: 600;
+      font-size: 1rem;
+      width: auto;
+      box-shadow: none;
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      pointer-events: none;
+      /* make it behave like read-only text */
+    }
+  </style>
+</head>
+
+<body>
+  <div id="topBanner" role="region" aria-label="Announcement">
+    <div class="banner-content">
+      <span>Join the Project Group “Websites”</span>
+      <a href="https://strategie.scout.ch/massnahmen/unterstuetzung-bei-der-erstellung-von-websites/" target="_blank" rel="noopener noreferrer">Learn more / Join</a>
+    </div>
+    <button id="closeBannerBtn" class="close-banner" aria-label="Close announcement">✕</button>
+  </div>
+
+  <div id="gameContainer">
+    <div id="score">Score: 0</div>
+    <div id="coin">find the hidden COIN 🌕 </div>
+    <canvas id="gameCanvas" width="800" height="200" aria-label="Game canvas"></canvas>
+    <div id="gameOver">GAME OVER<br><span style="font-size: 18px;">press ENTER to restart</span></div>
+    <!-- Modal shown on each loss with rotating messages -->
+    <div id="gameOverModal" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <h2 id="modalTitle">GAME OVER</h2>
+        <div id="modalMessage">...</div>
+        <div id="score-form">
+          <form id="my-form" target="my-response-iframe"
+            method="post">
+            <div id="name-field">Name: <input type="text" name="entry.1432292404" value="" required></div>
+            <div id="score-field">Score: <input id="score" type="text" name="entry.1260920591" value="" required
+                readonly></div>
+            <input type="text" name="entry.749143987" value="noooooo!" hidden>
+            <input type="submit" value="Submit Score" />
+          </form>
+
+          <iframe id="my-response-iframe" name="my-response-iframe" width="0" height="0"></iframe>
+        </div>
+        <button id="modalRestart" class="modal-button" id="restartModalBtn">Restart (Enter)</button>
+      </div>
+    </div>
+
+    <!-- Modal shown when coin is found -->
+    <div id="coinModal" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <h2 id="coinModalTitle">COIN FOUND!</h2>
+        <div id="coinModalMessage">You found the coin! Get your prize at the ITKom Marktstand / Input Stands CoIT on
+          Sunday.</div>
+        <button id="coinModalClose" class="modal-button">OK</button>
+      </div>
+    </div>
+
+    <div id="instructions">press SPACE to jump — press ENTER to restart. On mobile use the buttons.</div>
+  </div>
+
+  <!-- on-screen touch buttons -->
+  <button id="jumpBtn" class="touch-btn" aria-label="Jump button">JUMP</button>
+  <button id="restartBtn" class="touch-btn" aria-label="Restart button">RESTART</button>
+  <script src="./game.js"></script>
+
+  <footer id="pageFooter">
+    <nav aria-label="Related links">
+      <a href="https://strategie.scout.ch" target="_blank" rel="noopener noreferrer">Strategie-Tool</a>
+      <span class="sep">•</span>
+      <a href="https://itkompass.scout.ch/#" target="_blank" rel="noopener noreferrer">IT‑Kompass</a>
+      <span class="sep">•</span>
+      <a href="https://pfadi.swiss/fr/calendrier-media-news/calendrier/detail/554/delegiertenversammlung-pbs-2025/"
+        target="_blank" rel="noopener noreferrer">AD Info (FR)</a>
+      <span class="sep">•</span>
+      <a href="https://pfadi.swiss/de/kalender-medien-news/agenda/detail/554/delegiertenversammlung-pbs-2025/"
+        target="_blank" rel="noopener noreferrer">DV Info (DE)</a>
+    </nav>
+  </footer>
+
+  <style>
+    /* footer styles */
+    #pageFooter {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 16px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 10000;
+      font-size: 14px;
+      backdrop-filter: blur(4px);
+    }
+
+    #pageFooter nav a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 6px;
+    }
+
+    #pageFooter .sep {
+      margin: 0 6px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    @media (max-width: 480px) {
+      #pageFooter {
+        font-size: 13px;
+        padding: 8px 10px;
+      }
+
+      #pageFooter nav a {
+        margin: 0 4px;
+      }
+    }
+
+    #score-form {
+      margin-top: 12px;
+      background-color: #afb5c8;
+      border-radius: 3px;
+      padding: 5px;
+    }
+
+    #my-response-iframe {
+      position: absolute;
+      z-index: -1000;
+    }
+
+    #modalMessage {
+      margin: 30px 10px;
+      border: 2px dotted green;
+      padding: 17px;
+      border-radius: 3px;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    #score-form input[type="submit"] {
+      background-color: #c2a0a0;
+      color: black;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(82, 29, 58, 0.28);
+      transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    #score-form input[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(82, 29, 58, 0.32);
+      opacity: 0.98;
+    }
+
+    #score-form input[type="submit"]:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(82, 29, 58, 0.22);
+    }
+
+    /* full width on small screens */
+    @media (max-width: 640px) {
+      body {
+        background-size: 120px;
+      }
+      #score-form input[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</body>
+
+</html>
