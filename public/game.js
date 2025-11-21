@@ -1,4 +1,3 @@
-
 (function () {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
@@ -14,12 +13,6 @@
   const banner = document.getElementById('topBanner');
   const closeBtn = document.getElementById('closeBannerBtn');
   if (!banner || !closeBtn) return;
-
-  // restore hidden state
-  // if (sessionStorage.getItem('dv_banner_hidden') === '1') {
-  //   banner.style.display = 'none';
-  //   document.getElementById('gameContainer').style.marginTop = '0';
-  // }
 
   closeBtn.addEventListener('click', () => {
     banner.style.display = 'none';
@@ -587,4 +580,5 @@
   // load game visuals
   drawGround();
   drawClippy();
+
 })();

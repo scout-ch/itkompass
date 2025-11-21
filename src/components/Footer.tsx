@@ -65,8 +65,11 @@ const FooterImage = styled.div`
 `
 
 const Logo = styled.div`
-  width: 180px;
-  margin-left: 10px;
+  display: flex;
+  svg {
+    margin-left: 30px;
+    height: 100px;
+}
 `
 
 const Button = styled.button`
@@ -96,8 +99,8 @@ function Footer() {
     <FooterContent>
       <FooterNavigation>
         <Logo>
+          <img src={ITKomLogo} width={100} />
           <PBSLogo></PBSLogo>
-          <img src={ITKomLogo} width={100} style={{ marginTop: 20 }} />
         </Logo>
         <ul>
           <li>
