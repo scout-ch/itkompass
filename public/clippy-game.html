@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clippy Jump & Run</title>
+  <title>Clippy Game</title>
   <style>
     :root {
       --max-canvas-width: 800px;
@@ -74,7 +74,7 @@
     /* responsive canvas */
     #gameCanvas {
       border: 2px solid #535353;
-      background: #fff;
+      background: #c0cef7;;
       display: block;
       margin: 12px auto;
       width: 100%;
@@ -237,16 +237,14 @@
 <body>
   <div id="topBanner" role="region" aria-label="Announcement">
     <div class="banner-content">
-      <span>Join the Project Group “Websites”</span>
-      <a href="https://strategie.scout.ch/massnahmen/unterstuetzung-bei-der-erstellung-von-websites/" target="_blank"
-        rel="noopener noreferrer">Learn more / Join</a>
+      <span>DANKE - Merci - DANKE - Thank you - DANKE - Grazie - DANKE</span>
     </div>
     <button id="closeBannerBtn" class="close-banner" aria-label="Close announcement">✕</button>
   </div>
 
   <div id="gameContainer">
     <div id="score">Score: 0</div>
-    <div id="coin">find the hidden COIN 🌕 </div>
+    <div id="coin">find your christmas gift-COIN 🌕 </div>
     <canvas id="gameCanvas" width="800" height="200" aria-label="Game canvas"></canvas>
     <div id="gameOver">GAME OVER<br><span style="font-size: 18px;">press ENTER to restart</span></div>
     <!-- Modal shown on each loss with rotating messages -->
@@ -254,7 +252,7 @@
       <div class="modal-box">
         <h2 id="modalTitle">GAME OVER</h2>
         <div id="modalMessage">...</div>
-        <div id="score-form">
+        <!-- <div id="score-form">
           <form id="my-form" target="my-response-iframe" method="post">
             <div id="name-field">Name: <input type="text" name="entry.1432292404" value="" required></div>
             <div id="score-field">Score: <input id="score" type="text" name="entry.1260920591" value="" required
@@ -264,7 +262,7 @@
           </form>
 
           <iframe id="my-response-iframe" name="my-response-iframe" width="0" height="0"></iframe>
-        </div>
+        </div> -->
         <button id="modalRestart" class="modal-button" id="restartModalBtn">Restart (Enter)</button>
       </div>
     </div>
@@ -282,7 +280,7 @@
     <div id="instructions">press SPACE to jump — press ENTER to restart. On mobile use the buttons.</div>
 
     <!-- Highscores section (top 10) - moved inside gameContainer so it stacks below the game -->
-    <section id="highscores" aria-labelledby="highscores-title">
+    <!-- <section id="highscores" aria-labelledby="highscores-title">
       <div class="hs-inner">
         <div style="display:flex;align-items:center;gap:12px;justify-content:space-between">
           <h2 id="highscores-title" style="margin:0">Highscores</h2>
@@ -293,7 +291,7 @@
         </ol>
         <div class="hs-footnote">Top 10 — updated from remote source</div>
       </div>
-    </section>
+    </section> -->
   </div>
 
   <!-- on-screen touch buttons -->
@@ -380,12 +378,6 @@
       <a href="https://strategie.scout.ch" target="_blank" rel="noopener noreferrer">Strategie-Tool</a>
       <span class="sep">•</span>
       <a href="https://itkompass.scout.ch/#" target="_blank" rel="noopener noreferrer">IT‑Kompass</a>
-      <span class="sep">•</span>
-      <a href="https://pfadi.swiss/fr/calendrier-media-news/calendrier/detail/554/delegiertenversammlung-pbs-2025/"
-        target="_blank" rel="noopener noreferrer">AD Info (FR)</a>
-      <span class="sep">•</span>
-      <a href="https://pfadi.swiss/de/kalender-medien-news/agenda/detail/554/delegiertenversammlung-pbs-2025/"
-        target="_blank" rel="noopener noreferrer">DV Info (DE)</a>
     </nav>
   </footer>
 

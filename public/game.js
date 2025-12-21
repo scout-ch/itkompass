@@ -37,7 +37,7 @@
   // restore coin state from sessionStorage (if any)
   let coinFound = sessionStorage.getItem(coinKey) === '1';
   if (coinFound) {
-    coinEl.textContent = 'COIN FOUND!';
+    coinEl.textContent = 'COIN FOUND! => you will receive a prize!';
   }
 
   // helper to persist score
@@ -92,10 +92,9 @@
 
   // rotating game over messages (4 messages)
   const gameOverMessages = [
-    "Nicht aufgeben — versuch’s nochmal!",
-    "Bonne tentative — recommence pour battre ton score!",
-    "Keep going — the next run could be your best!",
-    "Courage — tu y es presque, réessaie !"
+    "Danke für deinen Einsatz in der ITKom!",
+    "Frohe Weihnachten und einen guten Rutsch ins neue Jahr!",
+    "Danke das du Teil der grossartigen ITKom bist!",
   ];
   const msgIndexKey = 'dvgame_gameover_msg_index';
   function nextGameOverMessage() {
@@ -120,11 +119,11 @@
   };
 
   let obstacles = [];
-  let clouds = [];
+  let snowflakes = [];
   const obstacleWidth = 30;
   const obstacleHeight = 50;
-  const cloudInterval = 150; // frames between cloud spawns
-  const cloudSpeedFactor = 0.45; // clouds move slower than obstacles
+  const snowInterval = 4; // frames between new snow spawns
+  const snowWind = 0.4; // max horizontal drift per frame
 
   // ground
   const groundY = 150;
@@ -246,33 +245,135 @@
       if (obs.type === 'coin') {
         drawCoin(obs);
       } else if (obs.type === 'tree') {
-        ctx.fillStyle = '#4e342e';
-        ctx.fillRect(obs.x - obs.width * 0.15, obs.y + 10, obs.width * 0.3, obs.height);
+        // anchor tree to ground bottom (ground line is at groundY + clippy.height)
+        const groundBottom = groundY + clippy.height;
 
-        // Foliage
-        ctx.fillStyle = '#2d5016';
+        // scale tree relative to obstacle size
+        const treeHeight = Math.max(80, obs.height * 1.6);
+        const trunkW = Math.max(10, obs.width * 0.36);
+        const trunkH = Math.max(12, treeHeight * 0.26);
+        const trunkX = obs.x - trunkW / 2;
+        const trunkY = groundBottom - trunkH; // trunk top so trunk bottom == groundBottom
+
+        // draw trunk
+        ctx.fillStyle = '#6b3f2f';
+        ctx.fillRect(trunkX, trunkY, trunkW, trunkH);
+
+        // foliage / tiers (smallest on top, largest at bottom)
+        const foliageHeight = Math.max(48, treeHeight * 0.72);
+        const apexY = trunkY - foliageHeight; // top of the tree
+        const layers = 3;
+        const baseWidth = Math.max(48, obs.width * 1.8);
+        const layerH = foliageHeight / layers;
+        const greens = ['#2d7c28', '#2d6f22', '#235a18'];
+
+        for (let i = 0; i < layers; i++) {
+          // compute layerIndex so 0 => top (smallest), layers-1 => bottom (largest)
+          const layerIndex = layers - 1 - i;
+          const w = baseWidth * (1 - (layerIndex * 0.18)); // smaller for higher layers
+          const topY = apexY + i * layerH;
+          ctx.fillStyle = greens[i % greens.length];
+          ctx.beginPath();
+          ctx.moveTo(obs.x, topY);
+          ctx.lineTo(obs.x - w / 2, topY + layerH);
+          ctx.lineTo(obs.x + w / 2, topY + layerH);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // star on top
+        const starR = Math.max(4, obs.width * 0.09);
+        const starX = obs.x;
+        const starY = apexY - starR;
+        ctx.fillStyle = '#f6d55c';
         ctx.beginPath();
-        ctx.moveTo(obs.x, obs.y - obs.width * 0.3);
-        ctx.lineTo(obs.x - obs.width * 0.5, obs.y + obs.height * 0.6);
-        ctx.lineTo(obs.x + obs.width * 0.5, obs.y + obs.height * 0.6);
-        ctx.closePath();
+        ctx.arc(starX, starY, starR, 0, Math.PI * 2);
         ctx.fill();
+
+        // ornaments: persistent offsets so they move with obs.x
+        if (!obs.ornaments) {
+          obs.ornaments = [];
+          const ornamentCount = Math.max(4, Math.floor(obs.width / 8));
+          const colors = ['#e63946', '#f77f00', '#ffb703', '#2a9d8f', '#7b2cbf'];
+          for (let i = 0; i < ornamentCount; i++) {
+            const layerIndex = Math.floor(Math.random() * layers);
+            const layerTop = apexY + layerIndex * layerH;
+            const layerWidth = baseWidth * (1 - layerIndex * 0.18);
+            const dx = (Math.random() - 0.5) * layerWidth * 0.72;      // horizontal offset relative to obs.x
+            const dy = (layerTop - apexY) + Math.random() * (layerH * 0.7); // vertical offset from apexY
+            obs.ornaments.push({ dx, dy, color: colors[i % colors.length] });
+          }
+        }
+
+        // draw ornaments (use offsets so they move with the tree)
+        obs.ornaments.forEach(o => {
+          const ox = obs.x + o.dx;
+          const oy = apexY + o.dy;
+          ctx.beginPath();
+          ctx.fillStyle = o.color;
+          ctx.arc(ox, oy, Math.max(3, obs.width * 0.06), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        });
       } else if (obs.type === 'tent') {
+        // Draw a gift box anchored to the ground (so it doesn't float)
+        const groundBottom = groundY + clippy.height;
+
+        const boxW = Math.max(36, obs.width * 1.4);
+        const boxH = Math.max(30, obs.height * 0.8);
+        const boxX = obs.x - boxW / 2;
+        const boxY = groundBottom - boxH;
+
+        // persistent per-obstacle colors
+        if (!obs.giftColor) {
+          const colors = ['#e63946', '#2a9d8f', '#f77f00', '#ffb703', '#7b2cbf'];
+          obs.giftColor = colors[Math.floor(Math.random() * colors.length)];
+          obs.ribbonColor = '#ffffff';
+          obs.bowColor = '#ffffff';
+        }
+
+        // draw shadow under box
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.fillRect(boxX + 3, boxY + boxH, boxW - 6, 3);
+
+        // box body
+        ctx.fillStyle = obs.giftColor;
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+
+        // subtle top rim
+        ctx.fillStyle = 'rgba(0,0,0,0.06)';
+        ctx.fillRect(boxX, boxY, boxW, Math.max(3, boxH * 0.08));
+
+        // vertical ribbon (center)
+        const ribbonW = Math.max(6, boxW * 0.12);
+        ctx.fillStyle = obs.ribbonColor;
+        ctx.fillRect(obs.x - ribbonW / 2, boxY, ribbonW, boxH);
+
+        // horizontal ribbon
+        const hrH = Math.max(5, boxH * 0.14);
+        ctx.fillRect(boxX, boxY + boxH * 0.44, boxW, hrH);
+
+        // bow (two loops)
+        ctx.fillStyle = obs.bowColor;
         ctx.beginPath();
-        ctx.moveTo(obs.x, obs.y);
-        ctx.lineTo(obs.x - obs.width * 0.8, obs.y + obs.height);
-        ctx.lineTo(obs.x + obs.width * 0.8, obs.y + obs.height);
-        ctx.lineTo(obs.x, obs.y);
-        ctx.fillStyle = "brown";
+        ctx.moveTo(obs.x, boxY + boxH * 0.06);
+        ctx.quadraticCurveTo(obs.x - boxW * 0.12, boxY + boxH * 0.18, obs.x, boxY + boxH * 0.28);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(obs.x, boxY + boxH * 0.06);
+        ctx.quadraticCurveTo(obs.x + boxW * 0.12, boxY + boxH * 0.18, obs.x, boxY + boxH * 0.28);
         ctx.fill();
 
-        ctx.beginPath();
-        ctx.strokeStyle = 'black'
-        ctx.moveTo(obs.x, obs.y + 4);
-        ctx.lineTo(obs.x, obs.y + obs.height);
-        ctx.lineWidth = 1;
-        ctx.stroke()
+        // small tag
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.fillRect(boxX + boxW - 10, boxY + boxH * 0.12, 7, 10);
 
+        // optional decoration: outline
+        ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(boxX + 0.5, boxY + 0.5, boxW - 1, boxH - 1);
       } else {
         // Vogel
         ctx.fillRect(obs.x, obs.y, obs.width, 20);
@@ -283,7 +384,7 @@
 
   // Boden zeichnen
   function drawGround() {
-    ctx.strokeStyle = '#105407';
+    ctx.strokeStyle = 'white';
     ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.moveTo(0, groundY + clippy.height);
@@ -314,52 +415,48 @@
     ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⚜️', obs.x, obs.y);
+    ctx.fillText('🎁', obs.x, obs.y);
     ctx.strokeStyle = '#daa520';
     ctx.lineWidth = 3;
     ctx.stroke();
   }
 
-  // Clouds
-  function drawClouds() {
-    clouds.forEach(cloud => {
-      ctx.fillStyle = '#3a79e4';
-      // left puff
+  // Snowflakes (background)
+  function drawSnowflakes() {
+    for (let s of snowflakes) {
       ctx.beginPath();
-      ctx.arc(cloud.x - 30 * cloud.scale, cloud.y, 30 * cloud.scale, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
-      // top/center puff
-      ctx.beginPath();
-      ctx.arc(cloud.x, cloud.y - 10 * cloud.scale, 35 * cloud.scale, 0, Math.PI * 2);
-      ctx.fill();
-      // right puff
-      ctx.beginPath();
-      ctx.arc(cloud.x + 30 * cloud.scale, cloud.y, 30 * cloud.scale, 0, Math.PI * 2);
-      ctx.fill();
-      // bottom puff
-      ctx.beginPath();
-      ctx.arc(cloud.x, cloud.y + 10 * cloud.scale, 25 * cloud.scale, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    }
   }
 
-  function updateClouds() {
-    // spawn
-    if (frameCount % cloudInterval === 0) {
-      clouds.push({
-        x: canvas.width + 80,
-        y: 40 + Math.random() * 60, // sky position
-        scale: 0.6 + Math.random() * 0.8
-      });
+  function updateSnowflakes() {
+    // spawn a few small flakes over time
+    if (frameCount % snowInterval === 0) {
+      const spawnCount = 1 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < spawnCount; i++) {
+        snowflakes.push({
+          x: Math.random() * canvas.width,
+          y: -8 - Math.random() * 20,
+          r: 1 + Math.random() * 3,
+          speedY: 0.4 + Math.random() * 1.2,
+          drift: (Math.random() - 0.5) * snowWind,
+          opacity: 0.6 + Math.random() * 0.4
+        });
+      }
     }
 
-    // move
-    clouds.forEach(c => {
-      c.x -= gameSpeed * cloudSpeedFactor;
-    });
+    // move flakes
+    for (let f of snowflakes) {
+      f.x += f.drift;
+      f.y += f.speedY;
+      // small horizontal sway
+      f.drift += (Math.random() - 0.5) * 0.02;
+    }
 
-    // remove off-screen
-    clouds = clouds.filter(c => c.x > -200);
+    // remove off-screen flakes
+    snowflakes = snowflakes.filter(f => f.y < canvas.height + 20);
   }
 
   function updateObstacles() {
@@ -401,7 +498,7 @@
           persistCoinFound();
           sessionStorage.setItem(scoreKey, String(score));
           // show coin modal to inform player where to claim prize
-          showCoinModal('You found the coin! Get your prize at the ITKom Marktstand / Input Stands CoIT on Sunday.');
+          showCoinModal('You found the gift-coin! 🎁\nYou will receive a prize for your effort!\n Send a Screenshot of this to Folletta.');
           continue;
         } else {
           return true;
@@ -429,8 +526,8 @@
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // background
-    drawClouds();
+    // background: falling snow
+    drawSnowflakes();
 
     drawGround();
     drawClippy();
@@ -438,10 +535,10 @@
 
     updateClippy();
     updateObstacles();
-    updateClouds();
+    updateSnowflakes();
     updateScore();
 
-    if ((score > 250 && !bla && frameCount % 77 === 0 && Math.random() > 0.8 && Math.random() < 0.3 && new Date().getSeconds() > 30)) {
+    if ((score > 250 && !bla && frameCount % 10 === 0 &&Math.random() < 0.5)) {
       bla = true;
       obstacles.push({
         x: canvas.width,
