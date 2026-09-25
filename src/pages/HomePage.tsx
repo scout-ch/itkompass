@@ -117,7 +117,7 @@ export default function HomePage() {
           <h3>{t('home_page.contact')}</h3>
           <ul>
             <li>
-              <A href="mailto:itkom@pbs.com">{t('home_page.mail')}</A>
+              <A href="mailto:itkom@pbs.ch">{t('home_page.mail')}</A>
             </li>
             <li>
               <A href="https://github.com/scout-ch">{t('home_page.github')}</A>
